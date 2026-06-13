@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Login - SuperOS{% endblock %}
+
+{% block content %}
+<div class="container min-vh-100 d-flex flex-column justify-content-center align-items-center">
+    
+    <h1 class="text-center mb-4 display-4 fw-bold text-primary">SuperOS</h1>
+
+    <div class="row justify-content-center w-100">
+        <div class="col-12 col-md-6 col-lg-4">
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm mb-3" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="card shadow border-0 p-4 bg-white rounded-3">
+                
+                <div class="text-center mb-4 text-secondary">
+                    <i class="bi bi-person-circle display-1"></i>
+                    <h2 class="h4 mt-2 text-dark">Acesse sua conta</h2>
+                </div>
+                
+                <form action="/" method="POST">
+                    
+                    <div class="form-floating mb-3">
+                        <input type="email" class="form-control" id="email" name="email" placeholder="nome@exemplo.com" required>
+                        <label for="email">E-mail</label>
+                    </div>
+                    
+                    <div class="form-floating mb-3">
+                        <input type="password" class="form-control" id="senha" name="senha" placeholder="Sua senha" required>
+                        <label for="senha">Senha</label>
+                    </div>
+                    
+                    <div class="d-grid mt-4">
+                        <button class="btn btn-primary btn-lg shadow-sm" type="submit">Entrar</button>
+                    </div>
+                    
+                    <div class="d-grid mt-2">
+                        <a href="/cadastro" class="btn btn-outline-secondary">Criar nova conta</a>
+                    </div>
+                    
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

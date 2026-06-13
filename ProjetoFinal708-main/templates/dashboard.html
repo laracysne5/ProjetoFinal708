@@ -1,0 +1,151 @@
+{% extends "baseLogado.html" %}
+
+{% block content %}
+<div class="container py-4">
+    
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h1 class="display-6 fw-bold text-dark mb-1">Olá, Bem-vindo de volta! 👋</h1>
+            <p class="text-muted mb-0">Aqui está o resumo da sua oficina e sistema de ordens de serviço.</p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <span class="badge bg-light text-dark p-2 border">
+                <i class="bi bi-calendar3 text-primary me-1"></i> Painel Geral
+            </span>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-3 bg-white h-100">
+                <div class="card-body p-4 d-flex align-items-center">
+                    <div class="bg-primary bg-opacity-10 p-3 rounded-3 text-primary me-3">
+                        <i class="bi bi-people-fill fs-2"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1 text-uppercase small fw-bold">Clientes</h6>
+                        <h3 class="mb-0 fw-bold text-dark">{{ clientes|length if clientes else '0' }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-3 bg-white h-100">
+                <div class="card-body p-4 d-flex align-items-center">
+                    <div class="bg-success bg-opacity-10 p-3 rounded-3 text-success me-3">
+                        <i class="bi bi-car-front-fill fs-2"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1 text-uppercase small fw-bold">Veículos</h6>
+                        <h3 class="mb-0 fw-bold text-dark">
+                            {% set total_veiculos = namespace(count=0) %}
+                            {% if clientes %}
+                                {% for c in clientes %}
+                                    {% if c.veiculos %}
+                                        {% set total_veiculos.count = total_veiculos.count + (c.veiculos|length) %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            {{ total_veiculos.count }}
+                        </h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-3 bg-white h-100">
+                <div class="card-body p-4 d-flex align-items-center">
+                    <div class="bg-warning bg-opacity-10 p-3 rounded-3 text-warning me-3">
+                        <i class="bi bi-wrench-adjustable fs-2"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1 text-uppercase small fw-bold">OS Abertas</h6>
+                        <h3 class="mb-0 fw-bold text-dark">0</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-3 bg-white h-100">
+                <div class="card-body p-4 d-flex align-items-center">
+                    <div class="bg-danger bg-opacity-10 p-3 rounded-3 text-danger me-3">
+                        <i class="bi bi-box-seam fs-2"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1 text-uppercase small fw-bold">Total Peças</h6>
+                        <h3 class="mb-0 fw-bold text-dark">{{ total_pecas }} un</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+                <h5 class="fw-bold mb-4 text-dark"><i class="bi bi-lightning-fill text-warning me-2"></i>Ações Rápidas</h5>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="/clientes" class="btn btn-outline-primary btn-md px-4 rounded-3 text-start shadow-sm">
+                        <i class="bi bi-person-plus-fill me-2"></i> Gerenciar Clientes e Carros
+                    </a>
+                    <a href="/mecanicos" class="btn btn-outline-info btn-md px-4 rounded-3 text-start shadow-sm text-dark">
+                        <i class="bi bi-wrench-adjustable-circle me-2"></i> Equipe de Mecânicos
+                    </a>
+                    <a href="/estoque" class="btn btn-outline-success btn-md px-4 rounded-3 text-start shadow-sm">
+                        <i class="bi bi-box-seam-fill me-2"></i> Controle de Estoque
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3 bg-white">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-2 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-clock-history text-secondary me-2"></i>Últimos Clientes Cadastrados</h5>
+                    <a href="/clientes" class="btn btn-sm btn-link text-decoration-none">Ver todos</a>
+                </div>
+                <div class="card-body px-0 pb-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-muted">
+                                <tr>
+                                    <th class="ps-4">Nome</th>
+                                    <th>E-mail</th>
+                                    <th>Telefone</th>
+                                    <th class="pe-4 text-end">Qtd. Veículos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if clientes %}
+                                    {% for cliente in clientes[:5] %}
+                                    <tr>
+                                        <td class="ps-4 fw-semibold text-dark">{{ cliente.nome }}</td>
+                                        <td>{{ cliente.email }}</td>
+                                        <td>{{ cliente.telefone or 'Não informado' }}</td>
+                                        <td class="pe-4 text-end">
+                                            <span class="badge bg-secondary rounded-pill">
+                                                {{ cliente.veiculos|length if cliente.veiculos else '0' }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4 text-muted">Nenhum cliente cadastrado no sistema.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "baseLogado.html" %}
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="fw-bold"><i class="bi bi-file-earmark-text text-primary me-2"></i>Ordens de Serviço</h1>
+        </div>
+        <div class="col text-end">
+            <a href="/os/nova" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>Abrir Nova OS
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3 bg-white">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Nº OS</th>
+                        <th>Cliente</th>
+                        <th>Veículo</th>
+                        <th>Mecânico</th>
+                        <th>Status</th>
+                        <th class="pe-4">Valor Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in ordens %}
+                    <tr>
+                        <td class="ps-4 fw-bold text-primary">#{{ o.id }}</td>
+                        <td class="fw-semibold text-dark">{{ o.clientes.nome if o.clientes else 'Não identificado' }}</td>
+                        <td>
+                            {% if o.veiculos %}
+                                {{ o.veiculos.marca }} {{ o.veiculos.modelo }} <small class="text-muted">({{ o.veiculos.placa }})</small>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{{ o.mecânicos.nome if o.mecânicos else 'Não atribuído' }}</td>
+                        <td>
+                            <span class="badge {% if o.status == 'Aberta' %}bg-warning text-dark{% elif o.status == 'Em Andamento' %}bg-info text-dark{% else %}bg-success{% endif %}">
+                                {{ o.status }}
+                            </span>
+                        </td>
+                        <td class="pe-4 fw-bold">R$ {{ o.preco_total or '0.00' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">Nenhuma Ordem de Serviço aberta.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

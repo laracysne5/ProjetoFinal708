@@ -1,0 +1,92 @@
+{% extends "baseLogado.html" %}
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="fw-bold"><i class="bi bi-box-seam text-success me-2"></i>Controle de Estoque</h1>
+        </div>
+        <div class="col text-end">
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalPeca">
+                <i class="bi bi-plus-lg me-2"></i>Adicionar Peça
+            </button>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3 bg-white">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Cód. Peça</th>
+                        <th>Nome da Peça</th>
+                        <th>Preço de Venda</th>
+                        <th>Qtd. Atual</th>
+                        <th class="pe-4 text-center">Ações de Estoque</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in pecas %}
+                    <tr>
+                        <td class="ps-4 text-muted fw-bold">{{ p.codigo or '-' }}</td>
+                        <td class="fw-semibold text-dark">{{ p.nome }}</td>
+                        <td>R$ {{ p.preco_venda }}</td>
+                        <td>
+                            <span class="badge {% if p.quantidade_estoque <= 2 %}bg-danger{% else %}bg-secondary{% endif %}">
+                                {{ p.quantidade_estoque }} un
+                            </span>
+                        </td>
+                        <td class="pe-4 text-center">
+                            <form action="/estoque/editar/{{ p.id }}" method="POST" class="d-flex justify-content-center gap-2 mx-auto" style="max-width: 200px;">
+                                <input type="number" name="nova_quantidade" value="{{ p.quantidade_estoque }}" class="form-control form-control-sm text-center" style="width: 80px;" required>
+                                <button type="submit" class="btn btn-sm btn-outline-dark" title="Atualizar quantidade">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">Nenhuma peça cadastrada no estoque.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalPeca" tabindex="-1">
+    <div class="modal-dialog">
+        <form action="/estoque/adicionar" method="POST" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Cadastrar Nova Peça</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Nome da Peça</label>
+                    <input type="text" name="nome" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Código de Fábrica/SKU</label>
+                    <input type="text" name="codigo" class="form-control" placeholder="ex: DIS-VNT-02" required>
+                </div>
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Quantidade Inicial</label>
+                        <input type="number" name="quantidade" value="0" min="0" class="form-control" required>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Preço de Venda (R$)</label>
+                        <input type="number" name="preco" step="0.01" value="0.00" class="form-control" required>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-success">Adicionar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends "baseLogado.html" %}
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-sm-6">
+            <h1 class="fw-bold"><i class="bi bi-people-fill text-primary me-2"></i>Clientes & Veículos</h1>
+        </div>
+        <div class="col-sm-6 text-sm-end d-flex gap-2 justify-content-sm-end mt-3 mt-sm-0">
+            <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalCliente">
+                <i class="bi bi-person-plus me-1"></i> Novo Cliente
+            </button>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalVeiculo">
+                <i class="bi bi-car-front me-1"></i> Vincular Veículo
+            </button>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3 bg-white">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Cliente</th>
+                        <th>Contato</th>
+                        <th class="pe-4">Veículos Vinculados</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in clientes %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-bold text-dark">{{ c.nome }}</div>
+                        </td>
+                        <td>
+                            <div class="small text-muted"><i class="bi bi-envelope me-1"></i>{{ c.email }}</div>
+                            <div class="small text-muted"><i class="bi bi-telephone me-1"></i>{{ c.telefone or 'Não informado' }}</div>
+                        </td>
+                        <td class="pe-4">
+                            {% if c.veiculos %}
+                                {% for v in c.veiculos %}
+                                    <span class="badge bg-light text-dark border mb-1 d-inline-block">
+                                        <i class="bi bi-car-front text-secondary me-1"></i>{{ v.marca }} {{ v.modelo }} <strong>({{ v.placa }})</strong>
+                                    </span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-muted small">Nenhum veículo cadastrado</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center py-4 text-muted">Nenhum cliente cadastrado.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalCliente" tabindex="-1">
+    <div class="modal-dialog">
+        <form action="/cadastrar_cliente" method="POST" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Cadastrar Novo Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Nome Completo</label>
+                    <input type="text" name="nome" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">E-mail</label>
+                    <input type="email" name="email" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Telefone</label>
+                    <input type="text" name="telefone" class="form-control">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar Cliente</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="modalVeiculo" tabindex="-1">
+    <div class="modal-dialog">
+        <form action="/cadastrar_veiculo" method="POST" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Cadastrar Novo Veículo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Proprietário / Cliente</label>
+                    <select name="cliente_id" class="form-select" required>
+                        <option value="" disabled selected>Escolha o proprietário do carro...</option>
+                        {% for c in clientes_select %}
+                            <option value="{{ c.id }}">{{ c.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Marca</label>
+                    <input type="text" name="marca" class="form-control" placeholder="ex: Fiat, Chevrolet" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Modelo</label>
+                    <input type="text" name="modelo" class="form-control" placeholder="ex: Uno, Onix" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Placa</label>
+                    <input type="text" name="placa" class="form-control" placeholder="ex: ABC1D23" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Vincular Veículo</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
