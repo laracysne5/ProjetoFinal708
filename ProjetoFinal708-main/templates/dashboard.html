@@ -5,17 +5,18 @@
     
     <div class="row mb-4 align-items-center">
         <div class="col-md-8">
-            <h1 class="display-6 fw-bold text-dark mb-1">Olá, Bem-vindo de volta! 👋</h1>
-            <p class="text-muted mb-0">Aqui está o resumo da sua oficina e sistema de ordens de serviço.</p>
+            <h1 class="display-6 fw-bold text-dark mb-1">Painel Gerencial</h1>
+            <p class="text-muted mb-0">Controle operacional, finanças e visão em tempo real da sua oficina mecânica.</p>
         </div>
         <div class="col-md-4 text-md-end mt-3 mt-md-0">
-            <span class="badge bg-light text-dark p-2 border">
-                <i class="bi bi-calendar3 text-primary me-1"></i> Painel Geral
-            </span>
+            <a href="{{ url_for('nova_ordem') }}" class="btn btn-primary shadow-sm px-4 py-2">
+                <i class="bi bi-file-earmark-plus me-2"></i>Nova OS
+            </a>
         </div>
     </div>
 
     <div class="row g-4 mb-5">
+        
         <div class="col-12 col-sm-6 col-lg-3">
             <div class="card border-0 shadow-sm rounded-3 bg-white h-100">
                 <div class="card-body p-4 d-flex align-items-center">
@@ -33,7 +34,7 @@
         <div class="col-12 col-sm-6 col-lg-3">
             <div class="card border-0 shadow-sm rounded-3 bg-white h-100">
                 <div class="card-body p-4 d-flex align-items-center">
-                    <div class="bg-success bg-opacity-10 p-3 rounded-3 text-success me-3">
+                    <div class="bg-info bg-opacity-10 p-3 rounded-3 text-info me-3">
                         <i class="bi bi-car-front-fill fs-2"></i>
                     </div>
                     <div>
@@ -58,11 +59,12 @@
             <div class="card border-0 shadow-sm rounded-3 bg-white h-100">
                 <div class="card-body p-4 d-flex align-items-center">
                     <div class="bg-warning bg-opacity-10 p-3 rounded-3 text-warning me-3">
-                        <i class="bi bi-wrench-adjustable fs-2"></i>
+                        <i class="bi bi-cone-striped fs-2"></i>
                     </div>
                     <div>
-                        <h6 class="text-muted mb-1 text-uppercase small fw-bold">OS Abertas</h6>
-                        <h3 class="mb-0 fw-bold text-dark">0</h3>
+                        <h6 class="text-muted mb-1 text-uppercase small fw-bold">OS em Aberto</h6>
+                        <h3 class="mb-0 fw-bold text-dark">{{ os_abertas + os_andamento }}</h3>
+                        <small class="text-muted">{{ os_abertas }} novas | {{ os_andamento }} na oficina</small>
                     </div>
                 </div>
             </div>
@@ -71,32 +73,27 @@
         <div class="col-12 col-sm-6 col-lg-3">
             <div class="card border-0 shadow-sm rounded-3 bg-white h-100">
                 <div class="card-body p-4 d-flex align-items-center">
-                    <div class="bg-danger bg-opacity-10 p-3 rounded-3 text-danger me-3">
+                    <div class="bg-success bg-opacity-10 p-3 rounded-3 text-success me-3">
                         <i class="bi bi-box-seam fs-2"></i>
                     </div>
                     <div>
-                        <h6 class="text-muted mb-1 text-uppercase small fw-bold">Total Peças</h6>
-                        <h3 class="mb-0 fw-bold text-dark">{{ total_pecas }} un</h3>
+                        <h6 class="text-muted mb-1 text-uppercase small fw-bold">Estoque Total</h6>
+                        <h3 class="mb-0 fw-bold text-dark">{{ total_pecas }} <span class="fs-6 text-muted">un</span></h3>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row g-4 mb-5">
+    <div class="row mb-5">
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
-                <h5 class="fw-bold mb-4 text-dark"><i class="bi bi-lightning-fill text-warning me-2"></i>Ações Rápidas</h5>
-                <div class="d-flex flex-wrap gap-3">
-                    <a href="/clientes" class="btn btn-outline-primary btn-md px-4 rounded-3 text-start shadow-sm">
-                        <i class="bi bi-person-plus-fill me-2"></i> Gerenciar Clientes e Carros
-                    </a>
-                    <a href="/mecanicos" class="btn btn-outline-info btn-md px-4 rounded-3 text-start shadow-sm text-dark">
-                        <i class="bi bi-wrench-adjustable-circle me-2"></i> Equipe de Mecânicos
-                    </a>
-                    <a href="/estoque" class="btn btn-outline-success btn-md px-4 rounded-3 text-start shadow-sm">
-                        <i class="bi bi-box-seam-fill me-2"></i> Controle de Estoque
-                    </a>
+                <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-lightning-fill text-warning me-2"></i>Ações e Atalhos Rápidos</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{{ url_for('listar_clientes') }}" class="btn btn-outline-primary"><i class="bi bi-person-plus me-2"></i>Clientes & Carros</a>
+                    <a href="{{ url_for('gerenciar_mecanicos') }}" class="btn btn-outline-secondary"><i class="bi bi-wrench-adjustable me-2"></i>Equipe de Mecânicos</a>
+                    <a href="{{ url_for('listar_estoque') }}" class="btn btn-outline-success"><i class="bi bi-box-seam me-2"></i>Controle de Estoque</a>
+                    <a href="{{ url_for('listar_ordens') }}" class="btn btn-outline-dark"><i class="bi bi-file-earmark-text me-2"></i>Visualizar Todas as OS</a>
                 </div>
             </div>
         </div>
@@ -106,37 +103,53 @@
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-3 bg-white">
                 <div class="card-header bg-transparent border-0 pt-4 px-4 pb-2 d-flex justify-content-between align-items-center">
-                    <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-clock-history text-secondary me-2"></i>Últimos Clientes Cadastrados</h5>
-                    <a href="/clientes" class="btn btn-sm btn-link text-decoration-none">Ver todos</a>
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-activity text-danger me-2"></i>Ordens de Serviço Recentes
+                    </h5>
+                    <a href="{{ url_for('listar_ordens') }}" class="btn btn-sm btn-link text-decoration-none">Ver todas as OS</a>
                 </div>
+                
                 <div class="card-body px-0 pb-0">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
                             <thead class="table-light text-muted">
                                 <tr>
-                                    <th class="ps-4">Nome</th>
-                                    <th>E-mail</th>
-                                    <th>Telefone</th>
-                                    <th class="pe-4 text-end">Qtd. Veículos</th>
+                                    <th class="ps-4">Nº OS</th>
+                                    <th>Cliente</th>
+                                    <th>Veículo / Placa</th>
+                                    <th>Problema Relatado</th>
+                                    <th>Status</th>
+                                    <th class="pe-4 text-end">Orçamento</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% if clientes %}
-                                    {% for cliente in clientes[:5] %}
+                                {% if ordens %}
+                                    {% for o in ordens[:5] %}
                                     <tr>
-                                        <td class="ps-4 fw-semibold text-dark">{{ cliente.nome }}</td>
-                                        <td>{{ cliente.email }}</td>
-                                        <td>{{ cliente.telefone or 'Não informado' }}</td>
-                                        <td class="pe-4 text-end">
-                                            <span class="badge bg-secondary rounded-pill">
-                                                {{ cliente.veiculos|length if cliente.veiculos else '0' }}
+                                        <td class="ps-4 fw-bold text-primary">#{{ o.id }}</td>
+                                        <td class="fw-semibold text-dark">{{ o.clientes.nome if o.clientes else 'Geral' }}</td>
+                                        <td>
+                                            {% if o.veiculos %}
+                                                {{ o.veiculos.modelo }} <span class="badge bg-light text-dark border">{{ o.veiculos.placa }}</span>
+                                            {% else %}
+                                                <small class="text-muted">Não informado</small>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-truncate" style="max-width: 250px;">{{ o.descricao_problema }}</td>
+                                        <td>
+                                            <span class="badge {% if o.status == 'Aberta' %}bg-warning text-dark{% elif o.status == 'Em Andamento' %}bg-info text-dark{% else %}bg-success{% endif %}">
+                                                {{ o.status }}
                                             </span>
                                         </td>
+                                        <td class="pe-4 text-end fw-bold text-dark">R$ {{ o.preco_total or '0.00' }}</td>
                                     </tr>
                                     {% endfor %}
                                 {% else %}
                                     <tr>
-                                        <td colspan="4" class="text-center py-4 text-muted">Nenhum cliente cadastrado no sistema.</td>
+                                        <td colspan="6" class="text-center py-5 text-muted">
+                                            <i class="bi bi-folder-x display-4 d-block mb-2 text-secondary"></i>
+                                            Nenhuma ordem de serviço registrada até o momento.
+                                        </td>
                                     </tr>
                                 {% endif %}
                             </tbody>

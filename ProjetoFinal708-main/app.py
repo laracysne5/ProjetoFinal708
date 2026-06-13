@@ -25,7 +25,6 @@ app.secret_key = '12345'  # Chave para criptografar as sessões e mensagens (fla
 # 2. SISTEMA DE LOGIN, LOGOUT E CADASTRO
 # ==========================================
 
-# --- ROTA: LOGIN (PÁGINA INICIAL) ---
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -33,17 +32,13 @@ def index():
         senha = request.form.get('senha')
         
         try:
-            # Busca o usuário comparando o E-mail E a Senha diretamente (Texto Puro)
             resposta = supabase.table('usuarios').select('*').eq('email', email).eq('senha', senha).execute()
-            
             if len(resposta.data) > 0:
                 usuario = resposta.data[0]
                 session['id_usuario'] = usuario['id']
                 return redirect(url_for('dashboard'))
             else:
                 flash('E-mail ou senha incorretos! Tente novamente.', 'danger')
-                print("Login falhou: Credenciais inválidas.")
-                
         except Exception as e:
             print(f"Erro de conexão com o Supabase no Login: {e}")
             flash('Erro ao conectar com o banco de dados.', 'danger')
@@ -51,7 +46,6 @@ def index():
     return render_template('index.html')
 
 
-# --- ROTA: TELA E PROCESSAMENTO DE CADASTRO DE USUÁRIO ---
 @app.route('/cadastro', methods=['GET', 'POST'])
 def cadastro():
     if request.method == 'POST':
@@ -77,10 +71,9 @@ def cadastro():
     return render_template('cadastro.html')
 
 
-# --- ROTA: LOGOUT (SAIR DO SISTEMA) ---
 @app.route('/logout')
 def logout():
-    session.clear()  # Apaga os dados da sessão
+    session.clear()
     flash('Você saiu do sistema.', 'info')
     return redirect(url_for('index'))
 
@@ -112,6 +105,11 @@ def dashboard():
         os_abertas = len([o for o in ordens if o['status'] == 'Aberta']) if ordens else 0
         os_andamento = len([o for o in ordens if o['status'] == 'Em Andamento']) if ordens else 0
         
+        # 5. CÁLCULOS DO PAINEL GERAL DE FATURAMENTO (ATUALIZADO)
+        valores_os = [float(o['preco_total']) for o in ordens if o['preco_total'] is not None]
+        faturamento_total = sum(valores_os)
+        ticket_medio = faturamento_total / len(ordens) if ordens and len(ordens) > 0 else 0.0
+        
     except Exception as e:
         print(f"Erro ao carregar dados do Dashboard: {e}")
         clientes = []
@@ -119,6 +117,8 @@ def dashboard():
         ordens = []
         os_abertas = 0
         os_andamento = 0
+        faturamento_total = 0.0
+        ticket_medio = 0.0
         
     return render_template(
         'dashboard.html', 
@@ -126,7 +126,9 @@ def dashboard():
         total_pecas=total_pecas, 
         ordens=ordens, 
         os_abertas=os_abertas,
-        os_andamento=os_andamento
+        os_andamento=os_andamento,
+        faturamento_total=faturamento_total,
+        ticket_medio=ticket_medio
     )
 
 
@@ -140,10 +142,7 @@ def listar_clientes():
         return redirect(url_for('index'))
 
     try:
-        # Busca os clientes com seus respectivos veículos para a tabela
         lista_clientes = supabase.table("clientes").select("id, nome, email, telefone, veiculos(marca, modelo, placa)").execute().data 
-        
-        # BUSCA DE CLIENTES PARA O SELECT DO MODAL "CADASTRAR VEÍCULO"
         lista_selecao_clientes = supabase.table("clientes").select("id, nome").order("nome").execute().data
     except Exception as e:
         print(f"Erro ao buscar lista de clientes: {e}")
@@ -183,7 +182,7 @@ def cadastrar_veiculo():
         "marca": request.form.get("marca"),
         "modelo": request.form.get("modelo"),
         "placa": request.form.get("placa"),
-        "cliente_id": int(request.form.get("cliente_id"))  # ID vindo do novo <select> do modal
+        "cliente_id": int(request.form.get("cliente_id"))
     }
     try:
         supabase.table("veiculos").insert(novo_veiculo).execute()
@@ -262,7 +261,7 @@ def editar_quantidade(id_peca):
     nova_qtd = int(request.form.get("nova_quantidade"))
     try:
         supabase.table("pecas").update({"quantidade_estoque": nova_qtd}).eq("id", id_peca).execute()
-        flash('Quantidade updated com sucesso!', 'success')
+        flash('Quantidade atualizada com sucesso!', 'success')
     except Exception as e:
         flash(f'Erro ao atualizar estoque: {e}', 'danger')
         
@@ -312,19 +311,98 @@ def nova_ordem():
         except Exception as e:
             flash(f'Erro ao abrir Ordem de Serviço: {e}', 'danger')
 
-    # SELECIONAR CLIENTE: Busca todos os clientes ordenados por nome para popular o formulário
     clientes = supabase.table("clientes").select("id, nome").order("nome").execute().data
     mecanicos = supabase.table("mecânicos").select("id, nome").order("nome").execute().data
 
     return render_template('nova_os.html', clientes=clientes, mecanicos=mecanicos)
 
 
-# --- API AUXILIAR: CARREGAR VEÍCULOS POR CLIENTE VIA AJAX ---
+# --- API AJAX PARA FILTRAR CARROS POR CLIENTE ---
 @app.route('/api/veiculos/<int:cliente_id>')
 def api_veiculos_por_cliente(cliente_id):
     veiculos = supabase.table("veiculos").select("id, marca, modelo, placa").eq("cliente_id", cliente_id).execute().data
     return jsonify(veiculos)
 
+# ==========================================
+# AULA 5: DETALHES DA OS, ADICIONAR ITENS E BAIXA DE ESTOQUE
+# ==========================================
+
+@app.route('/os/detalhes/<int:os_id>', methods=['GET'])
+def detalhes_os(os_id):
+    if 'id_usuario' not in session:
+        return redirect(url_for('index'))
+        
+    # 1. Busca os dados da OS principal
+    os_dados = supabase.table("ordens_servico").select(
+        "id, status, descricao_problema, preco_total, criado_em, clientes(nome, telefone), veiculos(marca, modelo, placa)"
+    ).eq("id", os_id).single().execute().data
+
+    # 2. Busca os itens (peças e serviços) já adicionados a esta OS
+    itens = supabase.table("os_itens").select("*").eq("os_id", os_id).execute().data
+
+    # 3. Busca a lista de peças disponíveis no estoque para colocar no select do formulário
+    pecas_estoque = supabase.table("pecas").select("id, nome, quantidade_estoque, preco_venda").execute().data
+
+    return render_template('detalhes_os.html', os=os_dados, itens=itens, pecas=pecas_estoque)
+
+
+@app.route('/os/adicionar_item/<int:os_id>', methods=['POST'])
+def adicionar_item_os(os_id):
+    if 'id_usuario' not in session:
+        return redirect(url_for('index'))
+
+    tipo = request.form.get("tipo") # 'Peca' ou 'Servico'
+    quantidade = int(request.form.get("quantidade", 1))
+    
+    if tipo == 'Peca':
+        peca_id = request.form.get("peca_id")
+        # Busca os dados da peça para pegar o nome correto e o preço de venda
+        peca_dados = supabase.table("pecas").select("*").eq("id", peca_id).single().execute().data
+        
+        descricao = peca_dados['nome']
+        preco_unitario = float(peca_dados['preco_venda'])
+        
+        # CONTROLE DE ESTOQUE: Verifica se há saldo disponível
+        if peca_dados['quantidade_estoque'] < quantidade:
+            flash(f"Estoque insuficiente! Saldo atual: {peca_dados['quantidade_estoque']} un.", "danger")
+            return redirect(url_for('detalhes_os', os_id=os_id))
+            
+        # REDUZIR ESTOQUE: Atualiza a quantidade no Supabase
+        nova_qtd_estoque = peca_dados['quantidade_estoque'] - quantidade
+        supabase.table("pecas").update({"quantidade_estoque": nova_qtd_estoque}).eq("id", peca_id).execute()
+        
+        # ALERTA SIMPLES DE ESTOQUE BAIXO (Ex: Menos de 3 unidades)
+        if nova_qtd_estoque <= 3:
+            flash(f"⚠️ Atenção: O estoque da peça '{descricao}' está baixo! Restam apenas {nova_qtd_estoque} un.", "warning")
+
+    else: # Se for Serviço (Mão de obra)
+        peca_id = None
+        descricao = request.form.get("descricao_servico")
+        preco_unitario = float(request.form.get("preco_servico"))
+
+    preco_total_item = preco_unitario * quantidade
+
+    # Insere o item na tabela os_itens
+    novo_item = {
+        "os_id": os_id,
+        "tipo": tipo,
+        "descricao": descricao,
+        "peca_id": int(peca_id) if peca_id else None,
+        "quantidade": quantidade,
+        "preco_unitario": preco_unitario,
+        "preco_total": preco_total_item
+    }
+    supabase.table("os_itens").insert(novo_item).execute()
+
+    # RECALCULAR VALOR TOTAL DA OS AUTOMATICAMENTE
+    todos_itens = supabase.table("os_itens").select("preco_total").eq("os_id", os_id).execute().data
+    novo_total_os = sum(float(item['preco_total']) for item in todos_itens)
+    
+    # Atualiza o preço total na tabela principal da OS
+    supabase.table("ordens_servico").update({"preco_total": novo_total_os}).eq("id", os_id).execute()
+
+    flash("Item adicionado e valores atualizados com sucesso!", "success")
+    return redirect(url_for('detalhes_os', os_id=os_id))
 
 # ==========================================
 # 8. EXECUÇÃO DO SERVIDOR LOCAL
