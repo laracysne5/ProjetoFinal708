@@ -9,9 +9,11 @@
             <p class="text-muted mb-0">Gerencie aberturas, manutenções, atribuição de mecânicos e valores de serviços.</p>
         </div>
         <div class="col-md-4 text-md-end mt-3 mt-md-0">
-            <a href="{{ url_for('nova_ordem') }}" class="btn btn-primary shadow-sm px-4 py-2">
-                <i class="bi bi-file-earmark-plus me-2"></i>Nova OS
-            </a>
+            {% if session['perfil'] in ['ADMIN', 'FUNCIONARIO'] %}
+                <a href="{{ url_for('nova_ordem') }}" class="btn btn-primary shadow-sm px-4 py-2">
+                    <i class="bi bi-file-earmark-plus me-2"></i>Nova OS
+                </a>
+            {% endif %}
         </div>
     </div>
 
@@ -34,7 +36,7 @@
                             <th>Problema Relatado</th>
                             <th>Status</th>
                             <th>Orçamento Atual</th>
-                            <th class="pe-4 text-end">Ações</th>
+                            <th class="pe-4 text-center" style="width: 160px;">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -73,23 +75,35 @@
                                 </td>
                                 
                                 <td>
-                                    {% if o.status == 'Aberta' %}
+                                    {% if o.status in ['Aberta', 'ABERTA'] %}
                                         <span class="badge bg-warning text-dark">Aberta</span>
-                                    {% elif o.status == 'Em Andamento' %}
+                                    {% elif o.status in ['Em Andamento', 'EM ANDAMENTO'] %}
                                         <span class="badge bg-info text-dark">Em Andamento</span>
+                                    {% elif o.status in ['Cancelado', 'CANCELADO'] %}
+                                        <span class="badge bg-danger">Cancelado</span>
                                     {% else %}
                                         <span class="badge bg-success">Concluída</span>
                                     {% endif %}
                                 </td>
                                 
                                 <td class="fw-bold text-dark">
-                                    R$ {{ "%.2f"|format(o.preco_total or 0.00) }}
+                                    R$ {{ "%.2f"|format(o.valor_total or 0.00) }}
                                 </td>
                                 
-                                <td class="pe-4 text-end">
-                                    <a href="{{ url_for('detalhes_os', os_id=o.id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                        <i class="bi bi-wrench-adjustable me-1"></i> Itens / Gerenciar
-                                    </a>
+                                <td class="pe-4">
+                                    <div class="d-flex flex-column align-items-center gap-1">
+                                        <a href="{{ url_for('detalhes_os', os_id=o.id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 w-100" style="max-width: 140px;">
+                                            <i class="bi bi-wrench-adjustable me-1"></i> Gerenciar
+                                        </a>
+
+                                        {% if session['perfil'] == 'ADMIN' %}
+                                            <form action="{{ url_for('excluir_ordem', os_id=o.id) }}" method="POST" class="w-100 text-center" onsubmit="return confirm('Tem certeza absoluta que deseja excluir a OS #{{ o.id }}?\nTodos os dados de peças e serviços vinculados serão apagados definitivamente.');">
+                                                <button type="submit" class="btn btn-sm btn-link text-danger text-decoration-none p-0 small font-monospace" style="font-size: 0.8rem;">
+                                                    <i class="bi bi-trash3-fill me-1"></i>Excluir OS
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}

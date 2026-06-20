@@ -1,0 +1,129 @@
+{% extends "baseLogado.html" %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h1 class="fw-bold text-success">
+                <i class="bi bi-cash-coin me-2"></i>Ordens de Serviço Concluídas
+            </h1>
+            <p class="text-muted mb-0">Monitore o faturamento, histórico e fechamento das manutenções finalizadas.</p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <a href="{{ url_for('painel_relatorios') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3 bg-white mb-4">
+        <div class="card-body p-4">
+            <form method="POST" action="{{ url_for('relatorio_os_concluidas') }}" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-muted text-uppercase">Data Inicial</label>
+                    <input type="date" name="data_inicio" value="{{ data_inicio }}" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-muted text-uppercase">Data Final</label>
+                    <input type="date" name="data_fim" value="{{ data_fim }}" class="form-control" required>
+                </div>
+                <div class="col-md-4 d-grid">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-filter me-2"></i>Filtrar Período
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if data_inicio and data_fim %}
+        <div class="row mb-4 g-3">
+            <div class="col-md-6">
+                <div class="card border-start border-success border-4 shadow-sm bg-white">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="bg-success-subtle p-3 rounded-3 text-success me-3">
+                            <i class="bi bi-currency-dollar fs-3"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted small mb-1 fw-bold text-uppercase">Faturamento no Período</h6>
+                            <h2 class="fw-bold text-success mb-0">R$ {{ "%.2f"|format(faturamento) }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-start border-primary border-4 shadow-sm bg-white">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="bg-primary-subtle p-3 rounded-3 text-primary me-3">
+                            <i class="bi bi-check2-circle fs-3"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted small mb-1 fw-bold text-uppercase">OS Finalizadas</h6>
+                            <h2 class="fw-bold text-dark mb-0">{{ ordens|length }} un</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-3 bg-white">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Nº OS</th>
+                                <th>Data Conclusão</th>
+                                <th>Cliente</th>
+                                <th>Veículo / Placa</th>
+                                <th class="pe-4 text-end">Valor Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if ordens %}
+                                {% for o in ordens %}
+                                <tr>
+                                    <td class="ps-4 fw-bold">
+                                        <a href="{{ url_for('detalhes_os', os_id=o.id) }}" class="text-success text-decoration-none">
+                                            #{{ o.id }}
+                                        </a>
+                                    </td>
+                                    <td class="text-muted small">
+                                        {{ o.data_conclusao }}
+                                    </td>
+                                    <td class="fw-semibold text-dark">{{ o.clientes.nome }}</td>
+                                    <td>
+                                        <span class="text-dark">{{ o.veiculos.marca }} {{ o.veiculos.modelo }}</span>
+                                        <small class="d-block text-muted">{{ o.veiculos.placa }}</small>
+                                    </td>
+                                    <td class="pe-4 text-end fw-bold text-success">
+                                        R$ {{ "%.2f"|format(o.valor_total or 0.00) }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted">
+                                        <i class="bi bi-calendar-x display-4 d-block mb-3 text-secondary"></i>
+                                        Nenhuma ordem de serviço foi concluída neste intervalo de datas.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="card border-0 shadow-sm bg-white text-center py-5">
+            <div class="card-body">
+                <i class="bi bi-calendar2-range display-4 text-muted mb-3 d-block"></i>
+                <h5 class="fw-bold text-dark">Escolha um período acima</h5>
+                <p class="text-muted mb-0">Selecione a data de início e término para calcular o faturamento e listar os encerramentos.</p>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

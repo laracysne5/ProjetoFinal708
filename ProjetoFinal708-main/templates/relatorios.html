@@ -1,0 +1,80 @@
+{% extends "baseLogado.html" %}
+
+{% block content %}
+<div class="container py-4">
+    
+    <div class="row mb-5">
+        <div class="col-12">
+            <h1 class="fw-bold text-dark">
+                <i class="bi bi-bar-chart-line text-success me-2"></i>Relatórios Gerenciais
+            </h1>
+            <p class="text-muted">Central de análise e métricas da oficina. Selecione abaixo o módulo que deseja monitorar.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm rounded-3 bg-white hover-shadow transition-all">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="bg-success-subtle p-3 rounded-3 text-success align-self-start mb-3">
+                        <i class="bi bi-cash-coin fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">Fechamento e Faturamento</h5>
+                    <p class="text-muted small flex-grow-1">
+                        Consulte o histórico de Ordens de Serviço finalizadas e calcule o faturamento bruto da oficina filtrando por período.
+                    </p>
+                    <a href="{{ url_for('relatorio_os_concluidas') }}" class="btn btn-success w-100 mt-3">
+                        <i class="bi bi-eye me-2"></i>Acessar Relatório
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm rounded-3 bg-white hover-shadow transition-all">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="bg-primary-subtle p-3 rounded-3 text-primary align-self-start mb-3">
+                        <i class="bi bi-cone-striped fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">Fluxo do Pátio (OS Ativas)</h5>
+                    <p class="text-muted small flex-grow-1">
+                        Acompanhe o andamento geral de veículos em manutenção, ordens abertas, em andamento ou paradas aguardando peças.
+                    </p>
+                    <a href="{{ url_for('relatorio_os_abertas') }}" class="btn btn-primary w-100 mt-3">
+                        <i class="bi bi-eye me-2"></i>Acessar Relatório
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm rounded-3 bg-white hover-shadow transition-all">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="bg-danger-subtle p-3 rounded-3 text-danger align-self-start mb-3">
+                        <i class="bi bi-exclamation-triangle fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">Alerta de Estoque</h5>
+                    <p class="text-muted small flex-grow-1">
+                        Evite perder serviços! Descubra quais peças de reposição e componentes atingiram o limite crítico e precisam de compra imediata.
+                    </p>
+                    <a href="{{ url_for('relatorio_estoque_baixo') }}" class="btn btn-danger w-100 mt-3">
+                        <i class="bi bi-eye me-2"></i>Acessar Relatório
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .transition-all {
+        transition: all 0.25s ease-in-out;
+    }
+    .hover-shadow:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1.5rem rgba(0,0,0,.12)!important;
+    }
+</style>
+{% endblock %}

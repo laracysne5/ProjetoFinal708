@@ -1,4 +1,5 @@
 {% extends "baseLogado.html" %}
+
 {% block content %}
 <div class="container py-4">
     <div class="row mb-4">
@@ -27,16 +28,16 @@
                 <tbody>
                     {% for p in pecas %}
                     <tr>
-                        <td class="ps-4 text-muted fw-bold">{{ p.codigo or '-' }}</td>
+                        <td class="ps-4 text-muted fw-bold">{{ p.codigo if p.codigo else '-' }}</td>
                         <td class="fw-semibold text-dark">{{ p.nome }}</td>
-                        <td>R$ {{ p.preco_venda }}</td>
+                        <td>R$ {{ "%.2f"|format(p.preco_venda or 0.00) }}</td>
                         <td>
                             <span class="badge {% if p.quantidade_estoque <= 2 %}bg-danger{% else %}bg-secondary{% endif %}">
                                 {{ p.quantidade_estoque }} un
                             </span>
                         </td>
                         <td class="pe-4 text-center">
-                            <form action="/estoque/editar/{{ p.id }}" method="POST" class="d-flex justify-content-center gap-2 mx-auto" style="max-width: 200px;">
+                            <form action="{{ url_for('editar_quantidade_estoque', peca_id=p.id) }}" method="POST" class="d-flex justify-content-center gap-2 mx-auto" style="max-width: 200px;">
                                 <input type="number" name="nova_quantidade" value="{{ p.quantidade_estoque }}" class="form-control form-control-sm text-center" style="width: 80px;" required>
                                 <button type="submit" class="btn btn-sm btn-outline-dark" title="Atualizar quantidade">
                                     <i class="bi bi-check-lg"></i>
@@ -57,7 +58,7 @@
 
 <div class="modal fade" id="modalPeca" tabindex="-1">
     <div class="modal-dialog">
-        <form action="/estoque/adicionar" method="POST" class="modal-content">
+        <form action="{{ url_for('adicionar_peca_estoque') }}" method="POST" class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title fw-bold">Cadastrar Nova Peça</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
