@@ -111,56 +111,99 @@ def logout():
 def dashboard():
     if 'id_usuario' not in session:
         return redirect(url_for('index'))
-        
+
     perfil = session.get('perfil')
-    
+
+    # DASHBOARD DO CLIENTE
     if perfil == 'CLIENTE':
         ordens_cliente = []
+
         try:
             email_logado = session.get('email_usuario')
-            cliente_dados = supabase.table("clientes").select("id").eq("email", email_logado).execute().data
-            
+
+            cliente_dados = supabase.table("clientes").select("id").eq(
+                "email", email_logado
+            ).execute().data
+
             if cliente_dados:
                 id_cliente_banco = cliente_dados[0]['id']
+
                 ordens_cliente = supabase.table("ordens_servico").select(
-                    "id, status, problema_relatado, valor_total, data_abertura, veiculos(marca, modelo, placa)"
-                ).eq("cliente_id", id_cliente_banco).order("id", desc=True).execute().data
+                    "id, status, descricao_problema, valor_total, data_abertura, veiculos(marca, modelo, placa)"
+                ).eq(
+                    "cliente_id", id_cliente_banco
+                ).order(
+                    "id", desc=True
+                ).execute().data
+
         except Exception as e:
             print(f"❌ Erro ao carregar painel do cliente: {e}")
-            
-        return render_template('dashboard_cliente.html', ordens=ordens_cliente)
-        
+
+        return render_template(
+            'dashboard_cliente.html',
+            ordens=ordens_cliente
+        )
+
+    # DASHBOARD ADMIN / FUNCIONÁRIO
     try:
-        clientes = supabase.table("clientes").select("id, nome, email, telefone, veiculos(id)").execute().data
-        
-        pecas = supabase.table("pecas").select("id, quantidade_estoque").execute().data
-        total_pecas = sum(p['quantidade_estoque'] for p in pecas) if pecas else 0
-        
+        clientes = supabase.table("clientes").select(
+            "id, nome, email, telefone, veiculos(id)"
+        ).execute().data
+
+        pecas = supabase.table("pecas").select(
+            "id, quantidade_estoque"
+        ).execute().data
+
+        total_pecas = sum(
+            p['quantidade_estoque'] for p in pecas
+        ) if pecas else 0
+
         ordens = supabase.table("ordens_servico").select(
-            "id, status, problema_relatado, valor_total, data_abertura, clientes(nome), veiculos(modelo, placa)"
-        ).order("id", desc=True).execute().data
-        
-        os_abertas = len([o for o in ordens if o['status'] == 'ABERTA']) if ordens else 0
-        os_andamento = len([o for o in ordens if o['status'] == 'EM_ANDAMENTO']) if ordens else 0
-        os_aguardando = len([o for o in ordens if o['status'] == 'AGUARDANDO_PEÇAS']) if ordens else 0
-        
+            "id, status, descricao_problema, valor_total, data_abertura, clientes(nome), veiculos(modelo, placa)"
+        ).order(
+            "id", desc=True
+        ).execute().data
+
+        os_abertas = len([
+            o for o in ordens
+            if (o.get('status') or '').upper() == 'ABERTA'
+        ]) if ordens else 0
+
+        os_andamento = len([
+            o for o in ordens
+            if (o.get('status') or '').upper() == 'EM_ANDAMENTO'
+        ]) if ordens else 0
+
+        os_aguardando = len([
+            o for o in ordens
+            if (o.get('status') or '').upper() == 'AGUARDANDO_PEÇAS'
+        ]) if ordens else 0
+
+        os_fechadas = len([
+            o for o in ordens
+            if (o.get('status') or '').upper() == 'FECHADO'
+        ]) if ordens else 0
+
     except Exception as e:
         print(f"⚠️ Aviso: Algumas tabelas gerenciais estão vazias ou inacessíveis ({e})")
+
+        clientes = []
         total_pecas = 0
         ordens = []
         os_abertas = 0
         os_andamento = 0
         os_aguardando = 0
-        
-    return render_template(
-        'dashboard.html', 
-        clientes=clientes, 
-        total_pecas=total_pecas, 
-        ordens=ordens, 
-        os_abertas=os_abertas,
-        os_andamento=os_andamento + os_aguardando
-    )
+        os_fechadas = 0
 
+    return render_template(
+        'dashboard.html',
+        clientes=clientes,
+        total_pecas=total_pecas,
+        ordens=ordens,
+        os_abertas=os_abertas,
+        os_andamento=os_andamento + os_aguardando,
+        os_fechadas=os_fechadas
+    )
 
 # ==========================================
 # 5. MÓDULO: CLIENTES E VEÍCULOS
@@ -352,13 +395,12 @@ def listar_ordens():
 @app.route('/os/nova', methods=['GET', 'POST'])
 def nova_ordem():
     permitido, redirecionamento = verificar_acesso(['ADMIN', 'FUNCIONARIO'])
-    if not permitido: return redirecionamento
+    if not permitido:
+        return redirecionamento
 
     if request.method == 'POST':
-        # Tenta capturar o problema pelos dois nomes possíveis que podem estar no HTML
         problema = request.form.get("problema_relatado") or request.form.get("descricao_problema")
-        
-        # Se mesmo assim vier vazio, define um texto padrão para não quebrar a restrição NOT NULL
+
         if not problema or problema.strip() == "":
             problema = "Problema não detalhado pelo atendente"
 
@@ -366,16 +408,22 @@ def nova_ordem():
             "cliente_id": int(request.form.get("cliente_id")),
             "veiculo_id": int(request.form.get("veiculo_id")),
             "mecanico_id": int(request.form.get("mecanico_id")) if request.form.get("mecanico_id") else None,
-            "descricao_problema": problema, # Garante o envio do texto tratado
-            "status": request.form.get("status", "ABERTA").upper(),
+            "descricao_problema": problema,
+
+            # STATUS INICIAL AGORA FECHADO
+            "status": request.form.get("status", "FECHADO").upper(),
+
             "data_abertura": datetime.date.today().isoformat(),
             "valor_total": 0.00
         }
+
         try:
             print(f"📊 DADOS SENDO ENVIADOS: {nova_os}")
             supabase.table("ordens_servico").insert(nova_os).execute()
+
             flash("Ordem de Serviço criada com sucesso!", "success")
             return redirect(url_for('listar_ordens'))
+
         except Exception as e:
             print("\n❌--- ERRO DETALHADO DO SUPABASE ---")
             print(e)
@@ -383,58 +431,33 @@ def nova_ordem():
             flash("Erro ao registrar Ordem de Serviço no banco.", "danger")
 
     clientes = supabase.table("clientes").select("id, nome").order("nome").execute().data
+
     try:
         mecanicos = supabase.table("mecânicos").select("id, nome").order("nome").execute().data
     except:
         mecanicos = []
-    return render_template('nova_os.html', clientes=clientes, mecanicos=mecanicos)
 
-@app.route('/api/veiculos/<int:cliente_id>')
-def api_veiculos_por_cliente(cliente_id):
-    if 'id_usuario' not in session:
-        return jsonify([])
-    veiculos = supabase.table("veiculos").select("id, marca, modelo, placa").eq("cliente_id", cliente_id).execute().data
-    return jsonify(veiculos)
+    return render_template(
+        'nova_os.html',
+        clientes=clientes,
+        mecanicos=mecanicos
+    )
 
 
 # ==========================================
 # 9. LANÇAMENTO DE ITENS E BAIXA AUTOMÁTICA
 # ==========================================
 
-@app.route('/os/detalhes/<int:os_id>', methods=['GET'])
-def detalhes_os(os_id):
-    if 'id_usuario' not in session:
-        return redirect(url_for('index'))
-        
-    try:
-        os_dados = supabase.table("ordens_servico").select(
-            "id, status, problema_relatado, valor_total, data_abertura, clientes(nome, email, telefone), veiculos(marca, modelo, placa)"
-        ).eq("id", os_id).single().execute().data
-
-        if session.get('perfil') == 'CLIENTE' and os_dados['clientes']['email'] != session.get('email_usuario'):
-            flash("Acesso não autorizado a esta ordem de serviço.", "danger")
-            return redirect(url_for('dashboard'))
-
-        itens = supabase.table("os_itens").select("*").eq("os_id", os_id).execute().data
-        pecas_estoque = supabase.table("pecas").select("id, nome, quantidade_estoque, preco_venda").execute().data
-    except Exception as e:
-        print(f"❌ Erro ao coletar detalhes da OS: {e}")
-        flash("Ordem de serviço não encontrada.", "danger")
-        return redirect(url_for('dashboard'))
-
-    return render_template('detalhes_os.html', os=os_dados, itens=itens, pecas=pecas_estoque)
-
-
 @app.route('/os/adicionar_item/<int:os_id>', methods=['POST'])
 def adicionar_item_os(os_id):
     permitido, redirecionamento = verificar_acesso(['ADMIN', 'FUNCIONARIO'])
     if not permitido: return redirecionamento
 
-    tipo = request.form.get("tipo").upper()
+    tipo_form = request.form.get("tipo", "").upper()
     quantidade = int(request.form.get("quantidade", 1))
     
     try:
-        if tipo == 'PEÇA':
+        if 'PEÇA' in tipo_form or 'PECA' in tipo_form:
             peca_id = request.form.get("peca_id")
             peca_dados = supabase.table("pecas").select("*").eq("id", peca_id).single().execute().data
             
@@ -443,7 +466,7 @@ def adicionar_item_os(os_id):
             
             if peca_dados['quantidade_estoque'] < quantidade:
                 flash(f"Estoque insuficiente! Saldo atual: {peca_dados['quantidade_estoque']} un.", "danger")
-                return redirect(url_for('detalhes_os', os_id=os_id))
+                return redirect(url_for('listar_ordens'))
                 
             nova_qtd_estoque = peca_dados['quantidade_estoque'] - quantidade
             supabase.table("pecas").update({"quantidade_estoque": nova_qtd_estoque}).eq("id", peca_id).execute()
@@ -451,28 +474,40 @@ def adicionar_item_os(os_id):
             if nova_qtd_estoque <= 3:
                 flash(f"⚠️ Atenção: O estoque da peça '{descricao}' está baixo! Restam apenas {nova_qtd_estoque} un.", "warning")
 
+            # 🔥 O formato exato que está no seu CHECK CONSTRAINT para Peça
+            tipo_banco = 'Peca' 
+
         else:
             peca_id = None
             descricao = request.form.get("descricao_servico")
-            valor_unitario = float(request.form.get("preco_servico"))
+            valor_unitario = float(request.form.get("preco_servico") or 0.00)
 
+            # 🔥 O formato exato que está no seu CHECK CONSTRAINT para Serviço
+            tipo_banco = 'Servico' 
+
+        # Cálculo correto do total do item baseado no seu schema (preco_total)
         valor_total_item = valor_unitario * float(quantidade)
 
         novo_item = {
             "os_id": os_id,
-            "tipo": tipo,
+            "tipo": tipo_banco, # Salva exatamente como 'Peca' ou 'Servico'
             "descricao": str(descricao) if descricao else "Item de Serviço",
             "peca_id": int(peca_id) if peca_id else None,
             "quantidade": quantidade,
-            "valor_unitario": valor_unitario,
-            "valor_total": valor_total_item
+            "preco_unitario": valor_unitario,
+            "preco_total": valor_total_item
         }
 
+        print(f"🚀 SALVANDO DEFINITIVO EM 'os_itens': {novo_item}")
+
+        # 1. Grava o item
         supabase.table("os_itens").insert(novo_item).execute()
 
-        todos_itens = supabase.table("os_itens").select("valor_total").eq("os_id", os_id).execute().data
-        novo_total_os = sum(float(item['valor_total']) for item in todos_itens)
+        # 2. Recalcula o total geral usando a coluna preco_total (que seu schema confirmou que existe)
+        todos_itens = supabase.table("os_itens").select("preco_total").eq("os_id", os_id).execute().data
+        novo_total_os = sum(float(item['preco_total'] or 0.00) for item in todos_itens)
         
+        # 3. Atualiza na tabela pai usando valor_total (que seu schema confirmou que existe)
         supabase.table("ordens_servico").update({"valor_total": novo_total_os}).eq("id", os_id).execute()
 
         flash("Item adicionado e valores atualizados com sucesso!", "success")
@@ -481,8 +516,7 @@ def adicionar_item_os(os_id):
         print(f"❌ Erro ao adicionar item na OS {os_id}: {e}")
         flash("Erro ao processar o lançamento do item.", "danger")
         
-    return redirect(url_for('detalhes_os', os_id=os_id))
-
+    return redirect(url_for('listar_ordens'))
 
 # ==========================================
 # 10. MÓDULO DE RELATÓRIOS (APENAS ADMIN)
@@ -576,6 +610,42 @@ def excluir_ordem(os_id):
         
     return redirect(url_for('listar_ordens'))
 
+@app.route('/os/<int:os_id>')
+def detalhes_os(os_id):
+    permitido, redirecionamento = verificar_acesso(['ADMIN', 'FUNCIONARIO'])
+    if not permitido:
+        return redirecionamento
+
+    try:
+        # Ordem de Serviço
+        os = supabase.table("ordens_servico").select(
+            """
+            id,
+            status,
+            valor_total,
+            descricao_problema,
+            clientes(nome, telefone),
+            veiculos(marca, modelo, placa)
+            """
+        ).eq("id", os_id).single().execute().data
+
+        # Itens da OS
+        itens = supabase.table("os_itens").select("*").eq("os_id", os_id).execute().data
+
+        # Peças disponíveis
+        pecas = supabase.table("pecas").select("*").order("nome").execute().data
+
+    except Exception as e:
+        print(f"Erro ao carregar OS: {e}")
+        flash("Erro ao carregar a Ordem de Serviço.", "danger")
+        return redirect(url_for("listar_ordens"))
+
+    return render_template(
+        "detalhes_os.html",
+        os=os,
+        itens=itens,
+        pecas=pecas
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)

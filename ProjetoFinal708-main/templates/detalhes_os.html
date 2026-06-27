@@ -10,87 +10,204 @@
             </a>
             <h2 class="fw-bold mb-0">Ordem de Serviço #{{ os.id }}</h2>
         </div>
+
         <div class="text-end">
-            <span class="badge bg-dark fs-6 p-2 mb-1">Status: {{ os.status }}</span>
-            <h3 class="text-success fw-bold mb-0">Total: R$ {{ "%.2f"|format(os.preco_total or 0.0) }}</h3>
+            <span class="badge bg-dark fs-6 p-2 mb-1">
+                Status: {{ os.status }}
+            </span>
+            <h3 class="text-success fw-bold mb-0">
+                Total: R$ {{ "%.2f"|format(os.preco_total or 0) }}
+            </h3>
         </div>
     </div>
 
     <div class="row g-4 mb-4">
+
         <div class="col-md-6">
             <div class="card border-0 shadow-sm p-3 bg-white h-100">
-                <h6 class="text-muted text-uppercase small fw-bold mb-2"><i class="bi bi-person me-2"></i>Cliente</h6>
-                <p class="mb-1 fw-bold text-dark">{{ os.clientes.nome }}</p>
-                <p class="text-muted small mb-0">Telefone: {{ os.clientes.telefone }}</p>
+                <h6 class="text-muted text-uppercase small fw-bold mb-2">
+                    <i class="bi bi-person me-2"></i>Cliente
+                </h6>
+
+                <p class="mb-1 fw-bold text-dark">
+                    {{ os.clientes.nome }}
+                </p>
+
+                <p class="text-muted small mb-0">
+                    Telefone: {{ os.clientes.telefone }}
+                </p>
             </div>
         </div>
+
         <div class="col-md-6">
             <div class="card border-0 shadow-sm p-3 bg-white h-100">
-                <h6 class="text-muted text-uppercase small fw-bold mb-2"><i class="bi bi-car-front me-2"></i>Veículo</h6>
-                <p class="mb-1 fw-bold text-dark">{{ os.veiculos.marca }} {{ os.veiculos.modelo }}</p>
-                <p class="text-muted small mb-0">Placa: <span class="badge bg-light text-dark border">{{ os.veiculos.placa }}</span></p>
+                <h6 class="text-muted text-uppercase small fw-bold mb-2">
+                    <i class="bi bi-car-front me-2"></i>Veículo
+                </h6>
+
+                <p class="mb-1 fw-bold text-dark">
+                    {{ os.veiculos.marca }} {{ os.veiculos.modelo }}
+                </p>
+
+                <p class="text-muted small mb-0">
+                    Placa:
+                    <span class="badge bg-light text-dark border">
+                        {{ os.veiculos.placa }}
+                    </span>
+                </p>
             </div>
         </div>
+
     </div>
 
     <div class="row g-4 mb-4">
+
+        <!-- Adicionar Peça -->
         <div class="col-md-6">
             <div class="card border-0 shadow-sm p-4 bg-white">
-                <h5 class="fw-bold text-primary mb-3"><i class="bi bi-box-seam me-2"></i>Lançar Peça do Estoque</h5>
+
+                <h5 class="fw-bold text-primary mb-3">
+                    <i class="bi bi-box-seam me-2"></i>Lançar Peça do Estoque
+                </h5>
+
                 <form action="{{ url_for('adicionar_item_os', os_id=os.id) }}" method="POST">
+
                     <input type="hidden" name="tipo" value="Peca">
+
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Selecione a Peça</label>
+                        <label class="form-label small fw-bold">
+                            Selecione a Peça
+                        </label>
+
                         <select name="peca_id" class="form-select" required>
                             <option value="">Selecione...</option>
+
                             {% for p in pecas %}
                             <option value="{{ p.id }}">
-                                {{ p.nome }} (Disponível: {{ p.quantidade_estoque }} un) - R$ {{ p.preco_venda }}
+                                {{ p.nome }}
+                                (Disponível: {{ p.quantidade_estoque }} un)
+                                - R$ {{ "%.2f"|format(p.preco_venda or 0) }}
                             </option>
                             {% endfor %}
+
                         </select>
                     </div>
+
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Quantidade</label>
-                        <input type="number" name="quantidade" class="form-control" value="1" min="1" required>
+                        <label class="form-label small fw-bold">
+                            Quantidade
+                        </label>
+
+                        <input
+                            type="number"
+                            name="quantidade"
+                            class="form-control"
+                            value="1"
+                            min="1"
+                            required>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">Adicionar Peça</button>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        Adicionar Peça
+                    </button>
+
                 </form>
+
             </div>
         </div>
 
+        <!-- Adicionar Serviço -->
         <div class="col-md-6">
+
             <div class="card border-0 shadow-sm p-4 bg-white">
-                <h5 class="fw-bold text-info mb-3"><i class="bi bi-wrench me-2"></i>Lançar Mão de Obra / Serviço</h5>
+
+                <h5 class="fw-bold text-info mb-3">
+                    <i class="bi bi-wrench me-2"></i>Lançar Mão de Obra / Serviço
+                </h5>
+
                 <form action="{{ url_for('adicionar_item_os', os_id=os.id) }}" method="POST">
+
                     <input type="hidden" name="tipo" value="Servico">
+
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Descrição do Serviço</label>
-                        <input type="text" name="descricao_servico" class="form-control" placeholder="Ex: Alinhamento, Troca de Óleo" required>
+
+                        <label class="form-label small fw-bold">
+                            Descrição do Serviço
+                        </label>
+
+                        <input
+                            type="text"
+                            name="descricao_servico"
+                            class="form-control"
+                            placeholder="Ex: Alinhamento, Troca de Óleo"
+                            required>
+
                     </div>
+
                     <div class="row g-2 mb-3">
+
                         <div class="col-8">
-                            <label class="form-label small fw-bold">Preço do Serviço (R$)</label>
-                            <input type="number" step="0.01" name="preco_servico" class="form-control" placeholder="0.00" required>
+
+                            <label class="form-label small fw-bold">
+                                Preço do Serviço (R$)
+                            </label>
+
+                            <input
+                                type="number"
+                                step="0.01"
+                                name="preco_servico"
+                                class="form-control"
+                                placeholder="0.00"
+                                required>
+
                         </div>
+
                         <div class="col-4">
-                            <label class="form-label small fw-bold">Qtd</label>
-                            <input type="number" name="quantidade" class="form-control" value="1" min="1" required>
+
+                            <label class="form-label small fw-bold">
+                                Qtd
+                            </label>
+
+                            <input
+                                type="number"
+                                name="quantidade"
+                                class="form-control"
+                                value="1"
+                                min="1"
+                                required>
+
                         </div>
+
                     </div>
-                    <button type="submit" class="btn btn-info text-white w-100">Adicionar Serviço</button>
+
+                    <button type="submit" class="btn btn-info text-white w-100">
+                        Adicionar Serviço
+                    </button>
+
                 </form>
+
             </div>
+
         </div>
+
     </div>
 
+    <!-- Tabela -->
+
     <div class="card border-0 shadow-sm bg-white">
+
         <div class="card-header bg-transparent border-0 pt-4 px-4">
-            <h5 class="fw-bold mb-0">Peças e Serviços Lançados</h5>
+            <h5 class="fw-bold mb-0">
+                Peças e Serviços Lançados
+            </h5>
         </div>
+
         <div class="card-body px-0 pb-0">
+
             <div class="table-responsive">
+
                 <table class="table align-middle mb-0">
+
                     <thead class="table-light text-muted small">
                         <tr>
                             <th class="ps-4">Tipo</th>
@@ -100,32 +217,59 @@
                             <th class="pe-4 text-end">Total</th>
                         </tr>
                     </thead>
+
                     <tbody>
+
                         {% if itens %}
+                         
                             {% for item in itens %}
+
                             <tr>
+
                                 <td class="ps-4">
                                     <span class="badge {% if item.tipo == 'Peca' %}bg-primary{% else %}bg-info{% endif %}">
                                         {{ item.tipo }}
                                     </span>
                                 </td>
-                                <td class="fw-semibold text-dark">{{ item.descricao }}</td>
-                                Tz<td>{{ item.quantidade }}</td>
-                                <td>R$ {{ "%.2f"|format(item.preco_unitario) }}</td>
-                                <td class="pe-4 text-end fw-bold text-dark">R$ {{ "%.2f"|format(item.preco_total) }}</td>
+
+                                <td class="fw-semibold text-dark">
+                                    {{ item.descricao }}
+                                </td>
+
+                                <td>
+                                    {{ item.quantidade }}
+                                </td>
+
+                                <td>
+                                    R$ {{ "%.2f"|format(item.preco_unitario or 0) }}
+                                </td>
+
+                                <td class="pe-4 text-end fw-bold text-dark">
+                                    R$ {{ "%.2f"|format(item.preco_total or 0) }}
+                                </td>
+
                             </tr>
+
                             {% endfor %}
+
                         {% else %}
+
                             <tr>
                                 <td colspan="5" class="text-center py-4 text-muted small">
                                     Nenhum item lançado nesta ordem de serviço ainda.
                                 </td>
                             </tr>
+
                         {% endif %}
+
                     </tbody>
+
                 </table>
+
             </div>
+
         </div>
+
     </div>
 
 </div>
