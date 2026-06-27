@@ -366,7 +366,7 @@ def nova_ordem():
             "veiculo_id": int(request.form.get("veiculo_id")),
             "mecanico_id": int(request.form.get("mecanico_id")) if request.form.get("mecanico_id") else None,
             "descricao_problema": problema, # Garante o envio do texto tratado
-            "status": request.form.get("status").upper(),
+            "status": request.form.get("status", "ABERTA").upper(),
             "data_abertura": datetime.date.today().isoformat(),
             "valor_total": 0.00
         }

@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container py-4">
-    
+
     <div class="row mb-4 align-items-center">
         <div class="col-md-8">
             <h1 class="display-6 fw-bold text-dark mb-1">Painel Gerencial</h1>
@@ -16,7 +16,8 @@
     </div>
 
     <div class="row g-4 mb-5">
-        
+
+        <!-- Clientes -->
         <div class="col-12 col-sm-6 col-lg-3">
             <div class="card border-0 shadow-sm rounded-3 bg-white h-100">
                 <div class="card-body p-4 d-flex align-items-center">
@@ -31,6 +32,7 @@
             </div>
         </div>
 
+        <!-- Veículos -->
         <div class="col-12 col-sm-6 col-lg-3">
             <div class="card border-0 shadow-sm rounded-3 bg-white h-100">
                 <div class="card-body p-4 d-flex align-items-center">
@@ -55,6 +57,7 @@
             </div>
         </div>
 
+        <!-- OS Ativas -->
         <div class="col-12 col-sm-6 col-lg-3">
             <div class="card border-0 shadow-sm rounded-3 bg-white h-100">
                 <div class="card-body p-4 d-flex align-items-center">
@@ -62,14 +65,32 @@
                         <i class="bi bi-cone-striped fs-2"></i>
                     </div>
                     <div>
-                        <h6 class="text-muted mb-1 text-uppercase small fw-bold">OS em Aberto</h6>
+                        <h6 class="text-muted mb-1 text-uppercase small fw-bold">OS Ativas</h6>
                         <h3 class="mb-0 fw-bold text-dark">{{ os_abertas + os_andamento }}</h3>
-                        <small class="text-muted">{{ os_abertas }} novas | {{ os_andamento }} na oficina</small>
+                        <small class="text-muted">
+                            {{ os_abertas }} abertas | {{ os_andamento }} em andamento
+                        </small>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- OS Fechadas -->
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-3 bg-white h-100">
+                <div class="card-body p-4 d-flex align-items-center">
+                    <div class="bg-secondary bg-opacity-10 p-3 rounded-3 text-secondary me-3">
+                        <i class="bi bi-lock-fill fs-2"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1 text-uppercase small fw-bold">OS Fechadas</h6>
+                        <h3 class="mb-0 fw-bold text-dark">{{ os_fechadas }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estoque -->
         <div class="col-12 col-sm-6 col-lg-3">
             <div class="card border-0 shadow-sm rounded-3 bg-white h-100">
                 <div class="card-body p-4 d-flex align-items-center">
@@ -83,22 +104,27 @@
                 </div>
             </div>
         </div>
+
     </div>
 
+    <!-- Atalhos -->
     <div class="row mb-5">
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
-                <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-lightning-fill text-warning me-2"></i>Ações e Atalhos Rápidos</h5>
+                <h5 class="fw-bold mb-3 text-dark">
+                    <i class="bi bi-lightning-fill text-warning me-2"></i>Ações e Atalhos Rápidos
+                </h5>
                 <div class="d-flex flex-wrap gap-2">
-                    <a href="{{ url_for('listar_clientes') }}" class="btn btn-outline-primary"><i class="bi bi-person-plus me-2"></i>Clientes & Carros</a>
-                    <a href="{{ url_for('gerenciar_mecanicos') }}" class="btn btn-outline-secondary"><i class="bi bi-wrench-adjustable me-2"></i>Equipe de Mecânicos</a>
-                    <a href="{{ url_for('listar_estoque') }}" class="btn btn-outline-success"><i class="bi bi-box-seam me-2"></i>Controle de Estoque</a>
-                    <a href="{{ url_for('listar_ordens') }}" class="btn btn-outline-dark"><i class="bi bi-file-earmark-text me-2"></i>Visualizar Todas as OS</a>
+                    <a href="{{ url_for('listar_clientes') }}" class="btn btn-outline-primary">Clientes & Carros</a>
+                    <a href="{{ url_for('gerenciar_mecanicos') }}" class="btn btn-outline-secondary">Equipe de Mecânicos</a>
+                    <a href="{{ url_for('listar_estoque') }}" class="btn btn-outline-success">Controle de Estoque</a>
+                    <a href="{{ url_for('listar_ordens') }}" class="btn btn-outline-dark">Visualizar Todas as OS</a>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Tabela -->
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-3 bg-white">
@@ -106,9 +132,11 @@
                     <h5 class="fw-bold mb-0 text-dark">
                         <i class="bi bi-activity text-danger me-2"></i>Ordens de Serviço Recentes
                     </h5>
-                    <a href="{{ url_for('listar_ordens') }}" class="btn btn-sm btn-link text-decoration-none">Ver todas as OS</a>
+                    <a href="{{ url_for('listar_ordens') }}" class="btn btn-sm btn-link text-decoration-none">
+                        Ver todas as OS
+                    </a>
                 </div>
-                
+
                 <div class="card-body px-0 pb-0">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
@@ -127,21 +155,47 @@
                                     {% for o in ordens[:5] %}
                                     <tr>
                                         <td class="ps-4 fw-bold text-primary">#{{ o.id }}</td>
-                                        <td class="fw-semibold text-dark">{{ o.clientes.nome if o.clientes else 'Geral' }}</td>
+
+                                        <td class="fw-semibold text-dark">
+                                            {{ o.clientes.nome if o.clientes else 'Geral' }}
+                                        </td>
+
                                         <td>
                                             {% if o.veiculos %}
-                                                {{ o.veiculos.modelo }} <span class="badge bg-light text-dark border">{{ o.veiculos.placa }}</span>
+                                                {{ o.veiculos.modelo }}
+                                                <span class="badge bg-light text-dark border">{{ o.veiculos.placa }}</span>
                                             {% else %}
                                                 <small class="text-muted">Não informado</small>
                                             {% endif %}
                                         </td>
-                                        <td class="text-truncate" style="max-width: 250px;">{{ o.descricao_problema }}</td>
+
+                                        <td class="text-truncate" style="max-width: 250px;">
+                                            {{ o.descricao_problema }}
+                                        </td>
+
                                         <td>
-                                            <span class="badge {% if o.status == 'Aberta' %}bg-warning text-dark{% elif o.status == 'Em Andamento' %}bg-info text-dark{% else %}bg-success{% endif %}">
+                                            <span class="badge
+                                                {% if o.status == 'ABERTA' %}
+                                                    bg-warning text-dark
+                                                {% elif o.status == 'EM_ANDAMENTO' %}
+                                                    bg-info text-dark
+                                                {% elif o.status == 'AGUARDANDO_PEÇAS' %}
+                                                    bg-primary
+                                                {% elif o.status == 'FECHADO' %}
+                                                    bg-secondary
+                                                {% elif o.status == 'CONCLUIDA' %}
+                                                    bg-success
+                                                {% else %}
+                                                    bg-dark
+                                                {% endif %}
+                                            ">
                                                 {{ o.status }}
                                             </span>
                                         </td>
-                                        <td class="pe-4 text-end fw-bold text-dark">R$ {{ o.preco_total or '0.00' }}</td>
+
+                                        <td class="pe-4 text-end fw-bold text-dark">
+                                            R$ {{ o.valor_total or '0.00' }}
+                                        </td>
                                     </tr>
                                     {% endfor %}
                                 {% else %}
@@ -156,6 +210,7 @@
                         </table>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>

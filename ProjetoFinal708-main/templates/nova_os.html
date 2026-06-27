@@ -1,95 +1,144 @@
 {% extends "baseLogado.html" %}
 {% block content %}
+
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
+
             <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
-                <h3 class="fw-bold mb-4 text-dark">
-                    <i class="bi bi-file-earmark-plus text-primary me-2"></i>Abertura de Ordem de Serviço
-                </h3>
                 
+                <h3 class="fw-bold mb-4 text-dark">
+                    <i class="bi bi-file-earmark-plus text-primary me-2"></i>
+                    Abertura de Ordem de Serviço
+                </h3>
+
                 <form action="/os/nova" method="POST">
-                    
+
+                    <!-- CLIENTE -->
                     <div class="mb-3">
-                        <label for="cliente_id" class="form-label fw-semibold">Selecionar Cliente</label>
+                        <label for="cliente_id" class="form-label fw-semibold">
+                            Selecionar Cliente
+                        </label>
                         <select name="cliente_id" id="cliente_id" class="form-select" required>
-                            <option value="" disabled selected>Escolha o cliente da ordem de serviço...</option>
+                            <option value="" disabled selected>
+                                Escolha o cliente da ordem de serviço...
+                            </option>
                             {% for c in clientes %}
                                 <option value="{{ c.id }}">{{ c.nome }}</option>
                             {% endfor %}
                         </select>
                     </div>
 
+                    <!-- VEÍCULO -->
                     <div class="mb-3">
-                        <label for="veiculo_id" class="form-label fw-semibold">Veículo do Cliente</label>
+                        <label for="veiculo_id" class="form-label fw-semibold">
+                            Veículo do Cliente
+                        </label>
                         <select name="veiculo_id" id="veiculo_id" class="form-select" required disabled>
-                            <option value="" disabled selected>Selecione um cliente primeiro...</option>
+                            <option value="" disabled selected>
+                                Selecione um cliente primeiro...
+                            </option>
                         </select>
                     </div>
 
+                    <!-- MECÂNICO -->
                     <div class="mb-3">
-                        <label for="mecanico_id" class="form-label fw-semibold">Mecânico Responsável</label>
+                        <label for="mecanico_id" class="form-label fw-semibold">
+                            Mecânico Responsável
+                        </label>
                         <select name="mecanico_id" id="mecanico_id" class="form-select">
-                            <option value="">Deixar sem atribuição inicial</option>
+                            <option value="">
+                                Deixar sem atribuição inicial
+                            </option>
                             {% for m in mecanicos %}
                                 <option value="{{ m.id }}">{{ m.nome }}</option>
                             {% endfor %}
                         </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label>Status inicial:</label>
-                        <select name="status" required>
-                        <option value="ABERTA">Aberta</option>
-                        <option value="EM_ANDAMENTO">Em andamento</option>
-                        <option value="AGUARDANDO_PEÇAS">Aguardando peças</option>
-                        <option value="FECHADA">Fechada</option>
+                    <!-- STATUS -->
+                     
                     </select>
-                    </select>
+                        <label for="status" class="form-label fw-semibold">
+                            Status Inicial
+                        </label>
+                        <select name="status" id="status" class="form-select" required>
+                            <option value="FECHADO" selected>Fechado</option>
+                            <option value="ABERTA">Aberta</option>
+                            <option value="EM_ANDAMENTO">Em andamento</option>
+                            <option value="AGUARDANDO_PEÇAS">Aguardando peças</option>
+                            <option value="CONCLUIDA">Concluída</option>
+                        </select>
                     </div>
 
+                    <!-- DESCRIÇÃO -->
                     <div class="mb-4">
-                        <label for="descricao_problema" class="form-label fw-semibold">Defeito Relatado / Reclamação</label>
-                        <textarea name="descricao_problema" id="descricao_problema" rows="4" class="form-control" placeholder="Descreva os sintomas ou serviços solicitados..." required></textarea>
+                        <label for="descricao_problema" class="form-label fw-semibold">
+                            Defeito Relatado / Reclamação
+                        </label>
+                        <textarea
+                            name="descricao_problema"
+                            id="descricao_problema"
+                            rows="4"
+                            class="form-control"
+                            placeholder="Descreva os sintomas ou serviços solicitados..."
+                            required></textarea>
                     </div>
 
+                    <!-- BOTÕES -->
                     <div class="d-flex justify-content-end gap-2">
-                        <a href="/os" class="btn btn-secondary">Cancelar</a>
-                        <button type="submit" class="btn btn-primary px-4">Salvar Ordem de Serviço</button>
+                        <a href="/os" class="btn btn-secondary">
+                            Cancelar
+                        </a>
+
+                        <button type="submit" class="btn btn-primary px-4">
+                            Salvar Ordem de Serviço
+                        </button>
                     </div>
 
                 </form>
+
             </div>
         </div>
     </div>
 </div>
 
 <script>
-document.getElementById('cliente_id').addEventListener('change', function() {
+document.getElementById('cliente_id').addEventListener('change', function () {
     const clienteId = this.value;
     const veiculoSelect = document.getElementById('veiculo_id');
-    
-    veiculoSelect.innerHTML = '<option value="" disabled selected>Carregando veículos...</option>';
+
+    veiculoSelect.innerHTML =
+        '<option value="" disabled selected>Carregando veículos...</option>';
     veiculoSelect.disabled = true;
 
-    // Dispara requisição interna para a API que criamos no app.py
     fetch(`/api/veiculos/${clienteId}`)
         .then(response => response.json())
         .then(data => {
-            veiculoSelect.innerHTML = '<option value="" disabled selected>Escolha o veículo...</option>';
+            veiculoSelect.innerHTML =
+                '<option value="" disabled selected>Escolha o veículo...</option>';
+
             if (data.length === 0) {
-                veiculoSelect.innerHTML = '<option value="" disabled>Este cliente não possui veículos cadastrados</option>';
+                veiculoSelect.innerHTML =
+                    '<option value="" disabled>Este cliente não possui veículos cadastrados</option>';
             } else {
                 data.forEach(v => {
-                    veiculoSelect.innerHTML += `<option value="${v.id}">${v.marca} ${v.modelo} [Placa: ${v.placa}]</option>`;
+                    veiculoSelect.innerHTML += `
+                        <option value="${v.id}">
+                            ${v.marca} ${v.modelo} [Placa: ${v.placa}]
+                        </option>
+                    `;
                 });
+
                 veiculoSelect.disabled = false;
             }
         })
         .catch(error => {
             console.error('Erro:', error);
-            veiculoSelect.innerHTML = '<option value="" disabled>Erro ao carregar veículos</option>';
+            veiculoSelect.innerHTML =
+                '<option value="" disabled>Erro ao carregar veículos</option>';
         });
 });
 </script>
+
 {% endblock %}
